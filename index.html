@@ -44,35 +44,26 @@
       }
     }
     .logo-gradient {
-  width: 200px;                /* your original logo size */
-  aspect-ratio: 5 / 1;         /* adjust if your SVG ratio differs */
+  width: 300px;               /* up from 200px so it’s big again */
+  aspect-ratio: 4 / 1;        /* roughly logo-width : logo-height */
   margin-bottom: 2rem;
 
-  /* 8-color gradient:  
-     4 “built-in” + 4 from your Firestore themes */
   background: linear-gradient(
     270deg,
-    /* Built-in colors */
     rgb(230,100,101),   /* #e66465 */
     rgb(246,183, 60),   /* #f6b73c */
-    rgb( 75,192,200),   /* #4bc0c8 */
-    rgb( 47,140,237),   /* #2f8ced */
-
-    /* Firestore “Marmalade” */
-    rgb(255, 98,   1),
-    rgb(245,233,  2),
-
-    /* Firestore “Moondrop Grape” */
-    rgb( 16,   0,  43),
-    rgb( 42, 114,  33)
+    rgb(75,192,200),    /* #4bc0c8 */
+    rgb(47,140,237),    /* #2f8ced */
+    rgb(255, 98,  1),   /* Marmalade primary */
+    rgb(245,233,  2),   /* Marmalade secondary */
+    rgb(16,   0, 43),   /* Moondrop primary */
+    rgb(42, 114, 33)    /* Moondrop secondary */
   );
-  background-size: 1600% 1600%; /* bigger so the 8-step cycle flows smoothly */
+  background-size: 1600% 1600%;
 
-  /* mask to show only the logo shape */
   -webkit-mask: url('logo.svg') no-repeat center / contain;
           mask: url('logo.svg') no-repeat center / contain;
 
-  /* animate through all 8 colors */
   animation: gradientShift 12s ease infinite;
 }
 
