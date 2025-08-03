@@ -18,7 +18,12 @@
         --button-text: #fff;
       }
     }
-
+    @font-face {
+      font-family: 'Chillax';
+      src: url('fonts/Chillax-Regular.ttf') format('truetype'); /* or .otf and format('opentype') */
+      font-weight: normal;
+      font-style: normal;
+    }
     /*–– Base styles ––*/
     body {
       margin: 0;
@@ -74,8 +79,9 @@
       color: var(--button-text);
       padding: 1rem 2rem;
       text-decoration: none;
-      border-radius: 5px;
+      border-radius: 10px;  /* double the original 5px */
       font-size: 1.2rem;
+      font-family: 'Chillax', sans-serif;  /* apply Chillax */
       transition: filter 0.2s;
     }
     a.button:hover {
