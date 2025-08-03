@@ -5,11 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Drizzl</title>
   <style>
+    /*–– Color variables for light & dark modes ––*/
+    :root {
+      --bg-color: #f9f9f9;
+      --button-bg: #cccccc;
+      --button-text: #000;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #000;
+        --button-bg: #555;      /* slightly darker grey in dark mode */
+        --button-text: #fff;
+      }
+    }
+
+    /*–– Base styles ––*/
     body {
       margin: 0;
       padding: 0;
       font-family: sans-serif;
-      background: #f9f9f9;
+      background: var(--bg-color);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -20,22 +35,36 @@
     img.logo {
       max-width: 200px;
       margin-bottom: 2rem;
+      transition: filter 0.3s;
     }
+    /* Invert the logo to white in dark mode */
+    @media (prefers-color-scheme: dark) {
+      img.logo {
+        filter: invert(1) brightness(2);
+      }
+    }
+
+    /*–– Button ––*/
     a.button {
-      background: #2ecc71;
-      color: white;
+      background: var(--button-bg);
+      color: var(--button-text);
       padding: 1rem 2rem;
       text-decoration: none;
       border-radius: 5px;
       font-size: 1.2rem;
+      transition: filter 0.2s;
     }
     a.button:hover {
-      background: #27ae60;
+      /* slightly dim on hover */
+      filter: brightness(0.9);
     }
   </style>
 </head>
 <body>
+  <!-- Update this path if your logo filename differs -->
   <img src="logo.svg" alt="Drizzl Logo" class="logo" />
-  <a href="#" class="button">Download Now</a>
+
+  <!-- Button text changed to September 2025 -->
+  <a href="#" class="button">September 2025</a>
 </body>
 </html>
