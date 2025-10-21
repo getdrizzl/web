@@ -5,21 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Drizzl</title>
   <style>
-    /*–––– Color variables ––––*/
     :root {
       --bg-color: #f9f9f9;
+      --text-color: #000;
       --button-bg: #cccccc;
       --button-text: #000;
+      --pill-orange: #e97232;
+      --pill-blue-dark: #0b235a;
+      --pill-blue-light: #b8d5ff;
+      --pill-green: #a4d7a1;
+      --pill-green-dark: #264b2a;
+      --heart-red: #a52a2a;
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg-color: #000;
+        --text-color: #fff;
         --button-bg: #555;
         --button-text: #fff;
       }
     }
 
-    /*–––– Font ––––*/
+    body {
+      margin: 0;
+      font-family: 'Chillax', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
     @font-face {
       font-family: 'Chillax';
       src: url('fonts/Chillax-Regular.ttf') format('truetype');
@@ -27,68 +40,65 @@
       font-style: normal;
     }
 
-    /*–––– Base styles ––––*/
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Chillax', sans-serif;
-      background: var(--bg-color);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-
-    /*–––– NavBar ––––*/
+    /*–––– Navbar ––––*/
     nav {
-      position: fixed;
+      position: sticky;
       top: 0;
-      left: 0;
+      z-index: 10;
       width: 100%;
       height: 70px;
       background: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(12px);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       padding: 0 2rem;
-      box-sizing: border-box;
-      z-index: 10;
-      transition: background 0.3s;
     }
-
     @media (prefers-color-scheme: dark) {
       nav {
         background: rgba(0, 0, 0, 0.7);
       }
     }
 
-    /*–––– Logo Gradient ––––*/
+    /*–– Logo ––*/
     .logo-gradient {
-      width: 150px;
+      width: 120px;
       aspect-ratio: 5 / 1;
-      background: linear-gradient(
-        270deg,
-        #e66465,
-        #f6b73c,
-        #4bc0c8,
-        #2f8ced
-      );
+      background: linear-gradient(270deg, #e66465, #f6b73c, #4bc0c8, #2f8ced);
       background-size: 800% 800%;
       -webkit-mask: url('logo.svg') no-repeat center / contain;
       mask: url('logo.svg') no-repeat center / contain;
       animation: gradientShift 8s ease infinite;
     }
-
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /*–––– Sign In Button ––––*/
-    .nav-button {
+    /*–– Filter Area ––*/
+    .filter-area {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+      justify-content: center;
+    }
+    select, input[type="text"] {
+      font-family: 'Chillax', sans-serif;
+      font-size: 0.95rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid #aaa;
+      outline: none;
+      background: rgba(255,255,255,0.9);
+    }
+    input[type="text"] {
+      width: 200px;
+    }
+
+    /*–– Auth Button ––*/
+    .auth-button {
       background: var(--button-bg);
       color: var(--button-text);
       padding: 0.6rem 1.5rem;
@@ -97,51 +107,255 @@
       font-size: 1rem;
       transition: filter 0.2s;
     }
-    .nav-button:hover {
+    .auth-button:hover {
       filter: brightness(0.9);
     }
 
-    /*–––– Hero Content (Center Page) ––––*/
-    .content {
-      margin-top: 150px;
-    }
-
-    .content a.button {
-      background: var(--button-bg);
-      color: var(--button-text);
-      padding: 1rem 2rem;
+    /*–––– Recipe List ––––*/
+    .recipe-list {
+      max-width: 900px;
+      margin: 2rem auto;
+      border: 1px solid #aaa;
       border-radius: 10px;
-      text-decoration: none;
-      font-size: 1.2rem;
-      transition: filter 0.2s;
+      overflow: hidden;
+      background: rgba(255,255,255,0.05);
     }
-    .content a.button:hover {
-      filter: brightness(0.9);
+
+    .recipe-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid #ccc;
+      transition: background 0.2s;
+    }
+    .recipe-card:last-child {
+      border-bottom: none;
+    }
+    .recipe-card:hover {
+      background: rgba(0,0,0,0.05);
+    }
+
+    .recipe-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .recipe-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #ddd;
+    }
+
+    .recipe-text {
+      text-align: left;
+    }
+    .recipe-title {
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+    .recipe-subtitle {
+      font-weight: 400;
+      font-size: 0.9rem;
+      color: gray;
+    }
+
+    .recipe-tags {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .pill {
+      border-radius: 20px;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.7rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .pill.orange {
+      background: var(--pill-orange);
+      color: #fff;
+    }
+    .pill.blue-dark {
+      background: var(--pill-blue-dark);
+      color: #fff;
+    }
+    .pill.blue-light {
+      background: var(--pill-blue-light);
+      color: #000;
+    }
+    .pill.green {
+      background: var(--pill-green);
+      color: var(--pill-green-dark);
+    }
+
+    .recipe-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .heart {
+      font-size: 1.3rem;
+      color: var(--heart-red);
+      cursor: pointer;
+    }
+
+    .arrow {
+      font-size: 1.4rem;
+      color: #888;
     }
   </style>
 </head>
 <body>
-
-  <!--–––– Navigation Bar ––––-->
+  <!-- Navbar -->
   <nav>
-    <div class="logo-gradient" role="img" aria-label="Drizzl logo"></div>
-    <a href="#" class="nav-button" id="authButton">Sign In</a>
+    <div class="logo-gradient"></div>
+
+    <div class="filter-area">
+      <select id="difficulty">
+        <option>Difficulty</option>
+        <option>Easy</option>
+        <option>Medium</option>
+        <option>Hard</option>
+      </select>
+      <select id="category">
+        <option>Category</option>
+        <option>Tacos</option>
+        <option>Bowls</option>
+      </select>
+      <input type="text" placeholder="Search Recipes" />
+    </div>
+
+    <a href="#" class="auth-button">Sign In</a>
   </nav>
 
-  <!--–––– Main Content ––––-->
-  <div class="content">
-    <a href="#" class="button">September 2025</a>
-  </div>
+  <!-- Recipe List -->
+  <div class="recipe-list">
+    <!-- Card 1 -->
+    <div class="recipe-card">
+      <div class="recipe-info">
+        <img src="https://placehold.co/60" alt="Recipe" class="recipe-img">
+        <div class="recipe-text">
+          <div class="recipe-title">One-Pan Beef & Black Bean Tacos</div>
+          <div class="recipe-subtitle">with Creamy Slaw, Pickled Onion & Red Pepper Crema</div>
+        </div>
+      </div>
+      <div class="recipe-tags">
+        <div class="pill orange">Tacos</div>
+        <div class="pill blue-dark">⏱</div>
+        <div class="pill blue-light">10 mins</div>
+        <div class="pill green"># 2</div>
+      </div>
+      <div class="recipe-actions">
+        <div class="heart">♥</div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
 
-  <script>
-    // Example logic for dynamic sign-in button text
-    const user = null; // Change this to { firstName: 'Roddy' } when signed in
-    const authButton = document.getElementById('authButton');
-    if (user && user.firstName) {
-      authButton.textContent = user.firstName;
-    } else {
-      authButton.textContent = 'Sign In';
-    }
-  </script>
+    <!-- Duplicate 5 more sample cards -->
+    <div class="recipe-card">
+      <div class="recipe-info">
+        <img src="https://placehold.co/60" class="recipe-img">
+        <div class="recipe-text">
+          <div class="recipe-title">Smashed Beef Gyoza Tacos</div>
+          <div class="recipe-subtitle">with Pickled Veggies, Sriracha Mayo & Sesame Seeds</div>
+        </div>
+      </div>
+      <div class="recipe-tags">
+        <div class="pill orange">Tacos</div>
+        <div class="pill blue-dark">⏱</div>
+        <div class="pill blue-light">10 mins</div>
+        <div class="pill green"># 1</div>
+      </div>
+      <div class="recipe-actions">
+        <div class="heart">♥</div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="recipe-info">
+        <img src="https://placehold.co/60" class="recipe-img">
+        <div class="recipe-text">
+          <div class="recipe-title">One-Pan Beef Stir-Fry Tacos</div>
+          <div class="recipe-subtitle">with Tangy Slaw, Sriracha Mayo & Fried Onions</div>
+        </div>
+      </div>
+      <div class="recipe-tags">
+        <div class="pill orange">Tacos</div>
+        <div class="pill blue-dark">⏱</div>
+        <div class="pill blue-light">10 mins</div>
+      </div>
+      <div class="recipe-actions">
+        <div class="heart">♥</div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="recipe-info">
+        <img src="https://placehold.co/60" class="recipe-img">
+        <div class="recipe-text">
+          <div class="recipe-title">One-Pan Cheesy Beef Tacos</div>
+          <div class="recipe-subtitle">with Green Pepper & Smoky Red Pepper Crema</div>
+        </div>
+      </div>
+      <div class="recipe-tags">
+        <div class="pill orange">Tacos</div>
+        <div class="pill blue-dark">⏱</div>
+        <div class="pill blue-light">10 mins</div>
+      </div>
+      <div class="recipe-actions">
+        <div class="heart">♥</div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="recipe-info">
+        <img src="https://placehold.co/60" class="recipe-img">
+        <div class="recipe-text">
+          <div class="recipe-title">Mango Salsa Beef Tacos</div>
+          <div class="recipe-subtitle">with Cilantro & Sour Cream</div>
+        </div>
+      </div>
+      <div class="recipe-tags">
+        <div class="pill orange">Tacos</div>
+        <div class="pill blue-dark">⏱</div>
+        <div class="pill blue-light">10 mins</div>
+      </div>
+      <div class="recipe-actions">
+        <div class="heart">♥</div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="recipe-info">
+        <img src="https://placehold.co/60" class="recipe-img">
+        <div class="recipe-text">
+          <div class="recipe-title">Sweet & Spicy Cashew Beef Tacos</div>
+          <div class="recipe-subtitle">with Gochujang Sauce & Tangy Slaw</div>
+        </div>
+      </div>
+      <div class="recipe-tags">
+        <div class="pill orange">Tacos</div>
+        <div class="pill blue-dark">⏱</div>
+        <div class="pill blue-light">10 mins</div>
+      </div>
+      <div class="recipe-actions">
+        <div class="heart">♥</div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
