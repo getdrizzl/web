@@ -71,7 +71,8 @@
     }
 
     .input-field {
-      width: 100%;
+      display: block;
+      width: calc(100% - 2px); /* Match button width */
       padding: 0.8rem 1rem;
       border-radius: 10px;
       border: 1px solid #ccc;
@@ -79,6 +80,7 @@
       font-family: 'Chillax', sans-serif;
       font-size: 0.95rem;
       outline: none;
+      box-sizing: border-box;
     }
 
     .primary-btn {
@@ -93,6 +95,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: opacity 0.2s ease;
+      box-sizing: border-box;
     }
     .primary-btn:hover { opacity: 0.9; }
 
@@ -126,6 +129,7 @@
       font-weight: 600;
       cursor: pointer;
       border: none;
+      box-sizing: border-box;
     }
     .apple-btn:hover { filter: brightness(1.2); }
 
@@ -144,14 +148,14 @@
     <h1 id="form-title">Sign in to Drizzl</h1>
     <p id="form-sub">Welcome back! Enter your credentials to continue.</p>
 
-    <input type="email" placeholder="Email address" class="input-field" />
-    <input type="password" placeholder="Password" class="input-field" />
+    <input id="email" type="email" placeholder="Email address" class="input-field" />
+    <input id="password" type="password" placeholder="Password" class="input-field" />
 
-    <button class="primary-btn">Sign In</button>
+    <button id="auth-btn" class="primary-btn">Sign In</button>
 
     <div class="divider">or</div>
 
-    <button class="apple-btn">
+    <button id="apple-btn" class="apple-btn">
       <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="18" height="18" alt="">
       Sign in with Apple
     </button>
@@ -159,13 +163,40 @@
     <div class="toggle-link" id="toggle-mode">Don’t have an account? Create one</div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signInWithPopup,
+      OAuthProvider
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTQTWHiPGU9o72DejlXG7T0cYWzrZoCA4",
+      authDomain: "plategpt-io.firebaseapp.com",
+      projectId: "plategpt-io",
+      storageBucket: "plategpt-io.firebasestorage.app",
+      messagingSenderId: "300206841519",
+      appId: "1:300206841519:web:f6375a1a26dec869cafe5a",
+      measurementId: "G-VZHQZ3CVDC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const appleProvider = new OAuthProvider('apple.com');
+
     const toggle = document.getElementById('toggle-mode');
     const title = document.getElementById('form-title');
     const sub = document.getElementById('form-sub');
-    const btn = document.querySelector('.primary-btn');
+    const btn = document.getElementById('auth-btn');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const appleBtn = document.getElementById('apple-btn');
 
     let creating = false;
+
     toggle.addEventListener('click', () => {
       creating = !creating;
       if (creating) {
@@ -178,6 +209,36 @@
         sub.textContent = 'Welcome back! Enter your credentials to continue.';
         btn.textContent = 'Sign In';
         toggle.textContent = 'Don’t have an account? Create one';
+      }
+    });
+
+    btn.addEventListener('click', async () => {
+      const emailVal = email.value.trim();
+      const passVal = password.value.trim();
+      if (!emailVal || !passVal) return alert("Please fill in both fields.");
+
+      try {
+        if (creating) {
+          await createUserWithEmailAndPassword(auth, emailVal, passVal);
+          alert("Account created successfully!");
+        } else {
+          await signInWithEmailAndPassword(auth, emailVal, passVal);
+          alert("Signed in successfully!");
+        }
+        window.location.href = "index.html";
+      } catch (error) {
+        console.error("Auth error:", error);
+        alert(error.message);
+      }
+    });
+
+    appleBtn.addEventListener('click', async () => {
+      try {
+        await signInWithPopup(auth, appleProvider);
+        window.location.href = "index.html";
+      } catch (error) {
+        console.error("Apple Sign-in error:", error);
+        alert("Apple sign-in failed: " + error.message);
       }
     });
   </script>
