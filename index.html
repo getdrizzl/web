@@ -361,5 +361,64 @@
       </div>
     </div>
   </div>
+  
+  <!-- Firebase App (core) -->
+  <script type="module">
+    // Import the Firebase SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  
+    // Your Firebase config (replace with your own)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTQTWHiPGU9o72DejlXG7T0cYWzrZoCA4",
+      authDomain: "plategpt-io.firebaseapp.com",
+      projectId: "plategpt-io",
+      storageBucket: "plategpt-io.firebasestorage.app",
+      messagingSenderId: "300206841519",
+      appId: "1:300206841519:web:f6375a1a26dec869cafe5a",
+      measurementId: "G-VZHQZ3CVDC"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+  
+    // Fetch recipes from Firestore
+    async function loadRecipes() {
+      const querySnapshot = await getDocs(collection(db, "recipes"));
+      const container = document.querySelector(".recipe-container");
+      container.innerHTML = ""; // clear old data
+  
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+  
+        // Build card dynamically
+        const card = document.createElement("div");
+        card.classList.add("recipe-card");
+        card.innerHTML = `
+          <div class="recipe-left">
+            <img src="${data.imageURL || 'https://placehold.co/60'}" class="recipe-img" />
+            <div class="recipe-text">
+              <div class="recipe-title">${data.title}</div>
+              <div class="recipe-subtitle">${data.subtitle}</div>
+            </div>
+          </div>
+          <div class="recipe-right">
+            <div class="recipe-tags">
+              <div class="pill orange">${data.category}</div>
+              <div class="pill blue-dark">⏱</div>
+              <div class="pill blue-light">${data.time}</div>
+              ${data.madeCount ? `<div class="pill green"># ${data.madeCount}</div>` : ""}
+              <div class="pill red">♥</div>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+  
+    loadRecipes();
+  </script>
 </body>
 </html>
