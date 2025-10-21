@@ -170,8 +170,6 @@
     .pill.green { background: var(--pill-green); color: var(--pill-green-dark); }
     .pill.red { background: var(--pill-red); }
 
-    .arrow { font-size: 1.4rem; color: #888; margin-left: 1rem; }
-
     /* Detail View */
     #recipe-detail {
       display: none;
@@ -184,7 +182,7 @@
       line-height: 1.6;
       position: relative;
     }
-    #recipe-detail h2 { margin-top: 0; }
+
     #back-button {
       margin-bottom: 1rem;
       background: none;
@@ -229,10 +227,6 @@
       cursor: pointer;
       font-family: 'Chillax', sans-serif;
     }
-    .carousel-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
   </style>
 </head>
 <body>
@@ -252,7 +246,7 @@
       </select>
       <input class="search-box" type="text" placeholder="Search Recipes" />
     </div>
-    <button class="auth-button" onclick="window.location.href='signin.html'">Sign In</button>
+    <button class="auth-button">Sign In</button>
   </nav>
 
   <div class="recipe-container"></div>
@@ -281,8 +275,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBTQTWHiPGU9o72DejlXG7T0cYWzrZoCA4",
@@ -297,7 +290,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
 
     const authButton = document.querySelector(".auth-button");
     onAuthStateChanged(auth, (user) => {
@@ -308,10 +300,7 @@
       } else {
         authButton.textContent = "Sign In";
         authButton.classList.remove("logged-in");
-        authButton.onclick = async () => {
-          try { await signInWithPopup(auth, provider); }
-          catch (e) { console.error("Sign-in error:", e.code, e.message); }
-        };
+        authButton.onclick = () => window.location.href = "signin.html";
       }
     });
 
@@ -319,7 +308,6 @@
       const querySnapshot = await getDocs(collection(db, "recipes"));
       const container = document.querySelector(".recipe-container");
       container.innerHTML = "";
-
       querySnapshot.forEach((docSnap) => {
         const d = docSnap.data();
         const card = document.createElement("div");
@@ -327,7 +315,7 @@
         card.innerHTML = `
           <div class="recipe-left">
             <img src="${d.imageURL || 'https://placehold.co/60'}" class="recipe-img" />
-            <div class="recipe-text">
+            <div>
               <div class="recipe-title">${d.title}</div>
               <div class="recipe-subtitle">${d.subtitle}</div>
             </div>
@@ -347,65 +335,39 @@
     async function showRecipeDetail(recipeId) {
       const container = document.querySelector(".recipe-container");
       const detailView = document.getElementById("recipe-detail");
-      const docRef = doc(db, "recipes", recipeId);
-      const docSnap = await getDoc(docRef);
+      const docSnap = await getDoc(doc(db, "recipes", recipeId));
+      if (!docSnap.exists()) return;
 
-      if (!docSnap.exists()) return console.error("No recipe found for ID:", recipeId);
       const r = docSnap.data();
-
       document.getElementById("detail-title").textContent = r.title || "";
       document.getElementById("detail-subtitle").textContent = r.subtitle || "";
 
       const ingredientsList = document.getElementById("detail-ingredients");
       ingredientsList.innerHTML = "";
-      if (r.ingredients) {
-        const items = r.ingredients.split("|");
-        items.forEach(i => {
-          const li = document.createElement("li");
-          li.textContent = i.trim();
-          ingredientsList.appendChild(li);
-        });
-      }
+      (r.ingredients || "").split("|").forEach(i => {
+        const li = document.createElement("li");
+        li.textContent = i.trim();
+        ingredientsList.appendChild(li);
+      });
 
-      // Build instruction carousel
       const track = document.getElementById("instruction-track");
       track.innerHTML = "";
-      let steps = r.instructions ? r.instructions.split("|") : [];
-      steps.forEach((step, i) => {
+      let steps = (r.instructions || "").split("|");
+      steps.forEach((s, i) => {
         const div = document.createElement("div");
         div.classList.add("carousel-step");
-        div.innerHTML = `<strong>Step ${i+1}:</strong> ${step.trim()}`;
+        div.innerHTML = `<strong>Step ${i+1}:</strong> ${s.trim()}`;
         track.appendChild(div);
       });
 
-      let currentIndex = 0;
-      const nextBtn = document.getElementById("next-step");
-      const prevBtn = document.getElementById("prev-step");
-
-      function updateCarousel() {
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-        prevBtn.disabled = currentIndex === 0;
-        nextBtn.disabled = currentIndex === steps.length - 1;
-      }
-
-      nextBtn.onclick = () => { if (currentIndex < steps.length - 1) { currentIndex++; updateCarousel(); } };
-      prevBtn.onclick = () => { if (currentIndex > 0) { currentIndex--; updateCarousel(); } };
-
-      // Touch swipe
-      let startX = 0;
-      track.addEventListener("touchstart", (e) => startX = e.touches[0].clientX);
-      track.addEventListener("touchend", (e) => {
-        let diff = e.changedTouches[0].clientX - startX;
-        if (diff > 50 && currentIndex > 0) { currentIndex--; updateCarousel(); }
-        if (diff < -50 && currentIndex < steps.length - 1) { currentIndex++; updateCarousel(); }
-      });
-
-      updateCarousel();
+      let current = 0;
+      const update = () => track.style.transform = `translateX(-${current * 100}%)`;
+      document.getElementById("next-step").onclick = () => { if (current < steps.length-1) current++; update(); };
+      document.getElementById("prev-step").onclick = () => { if (current > 0) current--; update(); };
 
       document.getElementById("detail-nutrition").textContent = r.nutrition || "";
       container.style.display = "none";
       detailView.style.display = "block";
-      window.scrollTo(0, 0);
     }
 
     document.getElementById("back-button").addEventListener("click", () => {
