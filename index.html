@@ -125,9 +125,13 @@
       font-size: 1rem;
       transition: filter 0.2s;
       white-space: nowrap;
+      cursor: pointer;
     }
     .auth-button:hover {
       filter: brightness(0.9);
+    }
+    .auth-button.logged-in {
+      background: var(--pill-orange);
     }
 
     /*––– Recipe Container –––*/
@@ -235,18 +239,18 @@
       </select>
       <input class="search-box" type="text" placeholder="Search Recipes" />
     </div>
-    <a href="#" class="auth-button">Sign In</a>
+    <button class="auth-button">Sign In</button>
   </nav>
 
   <div class="recipe-container"></div>
   
   <!-- Firebase App (core) -->
   <script type="module">
-    // Import the Firebase SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
   
-    // Your Firebase config (replace with your own)
     const firebaseConfig = {
       apiKey: "AIzaSyBTQTWHiPGU9o72DejlXG7T0cYWzrZoCA4",
       authDomain: "plategpt-io.firebaseapp.com",
@@ -257,45 +261,59 @@
       measurementId: "G-VZHQZ3CVDC"
     };
   
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-  
-    // Fetch recipes from Firestore
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // --- Sign-In Logic ---
+    const authButton = document.querySelector(".auth-button");
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authButton.textContent = user.displayName.split(" ")[0];
+        authButton.classList.add("logged-in");
+        authButton.onclick = async () => await signOut(auth);
+      } else {
+        authButton.textContent = "Sign In";
+        authButton.classList.remove("logged-in");
+        authButton.onclick = async () => {
+          try { await signInWithPopup(auth, provider); }
+          catch (e) { console.error("Sign-in error:", e); }
+        };
+      }
+    });
+
+    // --- Firestore Loading ---
     async function loadRecipes() {
       const querySnapshot = await getDocs(collection(db, "recipes"));
       const container = document.querySelector(".recipe-container");
-      container.innerHTML = ""; // clear old data
-  
+      container.innerHTML = "";
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
-  
-        // Build card dynamically
+        const d = doc.data();
         const card = document.createElement("div");
         card.classList.add("recipe-card");
         card.innerHTML = `
           <div class="recipe-left">
-            <img src="${data.imageURL || 'https://placehold.co/60'}" class="recipe-img" />
+            <img src="${d.imageURL || 'https://placehold.co/60'}" class="recipe-img" />
             <div class="recipe-text">
-              <div class="recipe-title">${data.title}</div>
-              <div class="recipe-subtitle">${data.subtitle}</div>
+              <div class="recipe-title">${d.title}</div>
+              <div class="recipe-subtitle">${d.subtitle}</div>
             </div>
           </div>
           <div class="recipe-right">
             <div class="recipe-tags">
-              <div class="pill orange">${data.category}</div>
+              <div class="pill orange">${d.category}</div>
               <div class="pill blue-dark">⏱</div>
-              <div class="pill blue-light">${data.time}</div>
-              ${data.madeCount ? `<div class="pill green"># ${data.madeCount}</div>` : ""}
+              <div class="pill blue-light">${d.time}</div>
+              ${d.madeCount ? `<div class="pill green"># ${d.madeCount}</div>` : ""}
               <div class="pill red">♥</div>
             </div>
             <div class="arrow">›</div>
-          </div>
-        `;
+          </div>`;
         container.appendChild(card);
       });
     }
-  
+
     loadRecipes();
   </script>
 </body>
