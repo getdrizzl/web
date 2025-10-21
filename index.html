@@ -42,7 +42,6 @@
       align-items: center;
     }
 
-    /*––– Navbar –––*/
     nav {
       position: sticky;
       top: 0;
@@ -92,9 +91,8 @@
       border-radius: 8px;
       padding: 0.5rem 1.8rem 0.5rem 0.8rem;
       font-size: 0.95rem;
-      font-family: 'Chillax', sans-serif;
       color: var(--text-dark);
-      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23666' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23666' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 0.6rem center;
       background-size: 10px 6px;
@@ -119,14 +117,13 @@
       border-radius: 10px;
       border: none;
       font-size: 1rem;
+      cursor: pointer;
       transition: filter 0.2s;
       white-space: nowrap;
-      cursor: pointer;
     }
     .auth-button:hover { filter: brightness(0.9); }
     .auth-button.logged-in { background: var(--pill-orange); }
 
-    /*––– Recipe Container –––*/
     .recipe-container {
       width: 95%;
       max-width: 850px;
@@ -152,30 +149,10 @@
       box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
     }
 
-    .recipe-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex: 1;
-    }
-
-    .recipe-img {
-      width: 60px;
-      height: 60px;
-      border-radius: 10px;
-      object-fit: cover;
-      background: #ddd;
-    }
-
-    .recipe-text { text-align: left; }
+    .recipe-left { display: flex; align-items: center; gap: 1rem; flex: 1; }
+    .recipe-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; background: #ddd; }
     .recipe-title { font-weight: 600; margin-bottom: 0.2rem; }
     .recipe-subtitle { font-weight: 400; font-size: 0.9rem; color: var(--text-sub); }
-
-    .recipe-tags {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
 
     .pill {
       border-radius: 20px;
@@ -195,13 +172,7 @@
 
     .arrow { font-size: 1.4rem; color: #888; margin-left: 1rem; }
 
-    .recipe-right {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    /*––– Detail View –––*/
+    /* Detail View */
     #recipe-detail {
       display: none;
       max-width: 850px;
@@ -211,9 +182,9 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       padding: 2rem;
       line-height: 1.6;
+      position: relative;
     }
     #recipe-detail h2 { margin-top: 0; }
-    #recipe-detail h3 { margin-top: 1.5rem; }
     #back-button {
       margin-bottom: 1rem;
       background: none;
@@ -224,6 +195,44 @@
       font-weight: 600;
     }
     #back-button:hover { text-decoration: underline; }
+
+    /* Carousel */
+    .carousel-container {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      height: 180px;
+      margin-top: 0.5rem;
+    }
+    .carousel-track {
+      display: flex;
+      transition: transform 0.4s ease;
+      width: 100%;
+    }
+    .carousel-step {
+      min-width: 100%;
+      box-sizing: border-box;
+      padding: 1rem;
+      color: var(--text-dark);
+    }
+    .carousel-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+    }
+    .carousel-btn {
+      background: var(--pill-orange);
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Chillax', sans-serif;
+    }
+    .carousel-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -252,10 +261,19 @@
     <button id="back-button">← Back</button>
     <h2 id="detail-title"></h2>
     <p id="detail-subtitle"></p>
+
     <h3>Ingredients</h3>
     <ul id="detail-ingredients"></ul>
+
     <h3>Instructions</h3>
-    <p id="detail-instructions"></p>
+    <div class="carousel-container">
+      <div class="carousel-track" id="instruction-track"></div>
+    </div>
+    <div class="carousel-nav">
+      <button id="prev-step" class="carousel-btn">Previous</button>
+      <button id="next-step" class="carousel-btn">Next</button>
+    </div>
+
     <h3>Nutrition</h3>
     <p id="detail-nutrition"></p>
   </div>
@@ -281,7 +299,6 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // --- Sign-In Logic ---
     const authButton = document.querySelector(".auth-button");
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -298,7 +315,6 @@
       }
     });
 
-    // --- Firestore Loading ---
     async function loadRecipes() {
       const querySnapshot = await getDocs(collection(db, "recipes"));
       const container = document.querySelector(".recipe-container");
@@ -317,33 +333,26 @@
             </div>
           </div>
           <div class="recipe-right">
-            <div class="recipe-tags">
-              <div class="pill orange">${d.category}</div>
-              <div class="pill blue-dark">⏱</div>
-              <div class="pill blue-light">${d.time}</div>
-              ${d.madeCount ? `<div class="pill green"># ${d.madeCount}</div>` : ""}
-              <div class="pill red">♥</div>
-            </div>
-            <div class="arrow">›</div>
+            <div class="pill orange">${d.category}</div>
+            <div class="pill blue-dark">⏱</div>
+            <div class="pill blue-light">${d.time}</div>
+            ${d.madeCount ? `<div class="pill green"># ${d.madeCount}</div>` : ""}
+            <div class="pill red">♥</div>
           </div>`;
         card.addEventListener("click", () => showRecipeDetail(docSnap.id));
         container.appendChild(card);
       });
     }
 
-    // --- Recipe Detail View ---
     async function showRecipeDetail(recipeId) {
       const container = document.querySelector(".recipe-container");
       const detailView = document.getElementById("recipe-detail");
       const docRef = doc(db, "recipes", recipeId);
       const docSnap = await getDoc(docRef);
 
-      if (!docSnap.exists()) {
-        console.error("No recipe found for ID:", recipeId);
-        return;
-      }
-
+      if (!docSnap.exists()) return console.error("No recipe found for ID:", recipeId);
       const r = docSnap.data();
+
       document.getElementById("detail-title").textContent = r.title || "";
       document.getElementById("detail-subtitle").textContent = r.subtitle || "";
 
@@ -358,15 +367,47 @@
         });
       }
 
-      document.getElementById("detail-instructions").textContent = r.instructions || "";
-      document.getElementById("detail-nutrition").textContent = r.nutrition || "";
+      // Build instruction carousel
+      const track = document.getElementById("instruction-track");
+      track.innerHTML = "";
+      let steps = r.instructions ? r.instructions.split("|") : [];
+      steps.forEach((step, i) => {
+        const div = document.createElement("div");
+        div.classList.add("carousel-step");
+        div.innerHTML = `<strong>Step ${i+1}:</strong> ${step.trim()}`;
+        track.appendChild(div);
+      });
 
+      let currentIndex = 0;
+      const nextBtn = document.getElementById("next-step");
+      const prevBtn = document.getElementById("prev-step");
+
+      function updateCarousel() {
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === steps.length - 1;
+      }
+
+      nextBtn.onclick = () => { if (currentIndex < steps.length - 1) { currentIndex++; updateCarousel(); } };
+      prevBtn.onclick = () => { if (currentIndex > 0) { currentIndex--; updateCarousel(); } };
+
+      // Touch swipe
+      let startX = 0;
+      track.addEventListener("touchstart", (e) => startX = e.touches[0].clientX);
+      track.addEventListener("touchend", (e) => {
+        let diff = e.changedTouches[0].clientX - startX;
+        if (diff > 50 && currentIndex > 0) { currentIndex--; updateCarousel(); }
+        if (diff < -50 && currentIndex < steps.length - 1) { currentIndex++; updateCarousel(); }
+      });
+
+      updateCarousel();
+
+      document.getElementById("detail-nutrition").textContent = r.nutrition || "";
       container.style.display = "none";
       detailView.style.display = "block";
       window.scrollTo(0, 0);
     }
 
-    // --- Back Button ---
     document.getElementById("back-button").addEventListener("click", () => {
       document.querySelector(".recipe-container").style.display = "flex";
       document.getElementById("recipe-detail").style.display = "none";
