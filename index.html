@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Drizzl</title>
   <style>
-    /*–– Color variables for light & dark modes ––*/
+    /*–––– Color variables ––––*/
     :root {
       --bg-color: #f9f9f9;
       --button-bg: #cccccc;
@@ -14,87 +14,134 @@
     @media (prefers-color-scheme: dark) {
       :root {
         --bg-color: #000;
-        --button-bg: #555;      /* slightly darker grey in dark mode */
+        --button-bg: #555;
         --button-text: #fff;
       }
     }
+
+    /*–––– Font ––––*/
     @font-face {
       font-family: 'Chillax';
-      src: url('fonts/Chillax-Regular.ttf') format('truetype'); /* or .otf and format('opentype') */
+      src: url('fonts/Chillax-Regular.ttf') format('truetype');
       font-weight: normal;
       font-style: normal;
     }
-    /*–– Base styles ––*/
+
+    /*–––– Base styles ––––*/
     body {
       margin: 0;
       padding: 0;
-      font-family: sans-serif;
+      font-family: 'Chillax', sans-serif;
       background: var(--bg-color);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
       text-align: center;
     }
-    img.logo {
-      max-width: 200px;
-      margin-bottom: 2rem;
-      transition: filter 0.3s;
+
+    /*–––– NavBar ––––*/
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2rem;
+      box-sizing: border-box;
+      z-index: 10;
+      transition: background 0.3s;
     }
-    /* Invert the logo to white in dark mode */
+
     @media (prefers-color-scheme: dark) {
-      img.logo {
-        filter: invert(1) brightness(2);
+      nav {
+        background: rgba(0, 0, 0, 0.7);
       }
     }
+
+    /*–––– Logo Gradient ––––*/
     .logo-gradient {
-  width: 600px;                /* 3x original width of 200px */
-  aspect-ratio: 5 / 1;         /* keep your original ratio */
-  margin-bottom: 2rem;
+      width: 150px;
+      aspect-ratio: 5 / 1;
+      background: linear-gradient(
+        270deg,
+        #e66465,
+        #f6b73c,
+        #4bc0c8,
+        #2f8ced
+      );
+      background-size: 800% 800%;
+      -webkit-mask: url('logo.svg') no-repeat center / contain;
+      mask: url('logo.svg') no-repeat center / contain;
+      animation: gradientShift 8s ease infinite;
+    }
 
-  background: linear-gradient(
-    270deg,
-    #e66465,   /* reddish */
-    #f6b73c,   /* yellowish */
-    #4bc0c8,   /* teal */
-    #2f8ced    /* blue */
-  );
-  background-size: 800% 800%;
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
-  -webkit-mask: url('logo.svg') no-repeat center / contain;
-  mask: url('logo.svg') no-repeat center / contain;
+    /*–––– Sign In Button ––––*/
+    .nav-button {
+      background: var(--button-bg);
+      color: var(--button-text);
+      padding: 0.6rem 1.5rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: filter 0.2s;
+    }
+    .nav-button:hover {
+      filter: brightness(0.9);
+    }
 
-  animation: gradientShift 8s ease infinite;
-}
+    /*–––– Hero Content (Center Page) ––––*/
+    .content {
+      margin-top: 150px;
+    }
 
-  @keyframes gradientShift {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-    /*–– Button ––*/
-    a.button {
+    .content a.button {
       background: var(--button-bg);
       color: var(--button-text);
       padding: 1rem 2rem;
+      border-radius: 10px;
       text-decoration: none;
-      border-radius: 10px;  /* double the original 5px */
       font-size: 1.2rem;
-      font-family: 'Chillax', sans-serif;  /* apply Chillax */
       transition: filter 0.2s;
     }
-    a.button:hover {
-      /* slightly dim on hover */
+    .content a.button:hover {
       filter: brightness(0.9);
     }
   </style>
 </head>
 <body>
-  <!-- Update this path if your logo filename differs -->
-  <div class="logo-gradient" role="img" aria-label="Drizzl logo"></div>
 
-  <!-- Button text changed to September 2025 -->
-  <a href="#" class="button">September 2025</a>
+  <!--–––– Navigation Bar ––––-->
+  <nav>
+    <div class="logo-gradient" role="img" aria-label="Drizzl logo"></div>
+    <a href="#" class="nav-button" id="authButton">Sign In</a>
+  </nav>
+
+  <!--–––– Main Content ––––-->
+  <div class="content">
+    <a href="#" class="button">September 2025</a>
+  </div>
+
+  <script>
+    // Example logic for dynamic sign-in button text
+    const user = null; // Change this to { firstName: 'Roddy' } when signed in
+    const authButton = document.getElementById('authButton');
+    if (user && user.firstName) {
+      authButton.textContent = user.firstName;
+    } else {
+      authButton.textContent = 'Sign In';
+    }
+  </script>
 </body>
 </html>
