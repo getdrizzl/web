@@ -58,9 +58,7 @@
       z-index: 10;
     }
     @media (prefers-color-scheme: dark) {
-      nav {
-        background: rgba(0, 0, 0, 0.7);
-      }
+      nav { background: rgba(0, 0, 0, 0.7); }
     }
 
     .logo-gradient {
@@ -87,7 +85,6 @@
       max-width: 700px;
     }
 
-    /*–– Pretty dropdowns ––*/
     select {
       appearance: none;
       background: rgba(255, 255, 255, 0.6);
@@ -104,7 +101,6 @@
       cursor: pointer;
     }
 
-    /*–– Glass search bar ––*/
     .search-box {
       background: rgba(255, 255, 255, 0.6);
       border: 1px solid #ccc;
@@ -121,18 +117,14 @@
       color: #fff;
       padding: 0.6rem 1.5rem;
       border-radius: 10px;
-      text-decoration: none;
+      border: none;
       font-size: 1rem;
       transition: filter 0.2s;
       white-space: nowrap;
       cursor: pointer;
     }
-    .auth-button:hover {
-      filter: brightness(0.9);
-    }
-    .auth-button.logged-in {
-      background: var(--pill-orange);
-    }
+    .auth-button:hover { filter: brightness(0.9); }
+    .auth-button.logged-in { background: var(--pill-orange); }
 
     /*––– Recipe Container –––*/
     .recipe-container {
@@ -153,6 +145,7 @@
       justify-content: space-between;
       padding: 1rem;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
     }
     .recipe-card:hover {
       transform: translateY(-2px);
@@ -174,18 +167,9 @@
       background: #ddd;
     }
 
-    .recipe-text {
-      text-align: left;
-    }
-    .recipe-title {
-      font-weight: 600;
-      margin-bottom: 0.2rem;
-    }
-    .recipe-subtitle {
-      font-weight: 400;
-      font-size: 0.9rem;
-      color: var(--text-sub);
-    }
+    .recipe-text { text-align: left; }
+    .recipe-title { font-weight: 600; margin-bottom: 0.2rem; }
+    .recipe-subtitle { font-weight: 400; font-size: 0.9rem; color: var(--text-sub); }
 
     .recipe-tags {
       display: flex;
@@ -209,17 +193,37 @@
     .pill.green { background: var(--pill-green); color: var(--pill-green-dark); }
     .pill.red { background: var(--pill-red); }
 
-    .arrow {
-      font-size: 1.4rem;
-      color: #888;
-      margin-left: 1rem;
-    }
+    .arrow { font-size: 1.4rem; color: #888; margin-left: 1rem; }
 
     .recipe-right {
       display: flex;
       align-items: center;
       gap: 0.6rem;
     }
+
+    /*––– Detail View –––*/
+    #recipe-detail {
+      display: none;
+      max-width: 850px;
+      margin: 2rem auto;
+      background: var(--bg-card);
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    #recipe-detail h2 { margin-top: 0; }
+    #recipe-detail h3 { margin-top: 1.5rem; }
+    #back-button {
+      margin-bottom: 1rem;
+      background: none;
+      border: none;
+      color: var(--pill-orange);
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #back-button:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -243,14 +247,25 @@
   </nav>
 
   <div class="recipe-container"></div>
-  
-  <!-- Firebase App (core) -->
+
+  <div id="recipe-detail">
+    <button id="back-button">← Back</button>
+    <h2 id="detail-title"></h2>
+    <p id="detail-subtitle"></p>
+    <h3>Ingredients</h3>
+    <ul id="detail-ingredients"></ul>
+    <h3>Instructions</h3>
+    <p id="detail-instructions"></p>
+    <h3>Nutrition</h3>
+    <p id="detail-nutrition"></p>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  
+
     const firebaseConfig = {
       apiKey: "AIzaSyBTQTWHiPGU9o72DejlXG7T0cYWzrZoCA4",
       authDomain: "plategpt-io.firebaseapp.com",
@@ -260,7 +275,7 @@
       appId: "1:300206841519:web:f6375a1a26dec869cafe5a",
       measurementId: "G-VZHQZ3CVDC"
     };
-  
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -278,7 +293,7 @@
         authButton.classList.remove("logged-in");
         authButton.onclick = async () => {
           try { await signInWithPopup(auth, provider); }
-          catch (e) { console.error("Sign-in error:", e); }
+          catch (e) { console.error("Sign-in error:", e.code, e.message); }
         };
       }
     });
@@ -288,8 +303,9 @@
       const querySnapshot = await getDocs(collection(db, "recipes"));
       const container = document.querySelector(".recipe-container");
       container.innerHTML = "";
-      querySnapshot.forEach((doc) => {
-        const d = doc.data();
+
+      querySnapshot.forEach((docSnap) => {
+        const d = docSnap.data();
         const card = document.createElement("div");
         card.classList.add("recipe-card");
         card.innerHTML = `
@@ -310,9 +326,51 @@
             </div>
             <div class="arrow">›</div>
           </div>`;
+        card.addEventListener("click", () => showRecipeDetail(docSnap.id));
         container.appendChild(card);
       });
     }
+
+    // --- Recipe Detail View ---
+    async function showRecipeDetail(recipeId) {
+      const container = document.querySelector(".recipe-container");
+      const detailView = document.getElementById("recipe-detail");
+      const docRef = doc(db, "recipes", recipeId);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        console.error("No recipe found for ID:", recipeId);
+        return;
+      }
+
+      const r = docSnap.data();
+      document.getElementById("detail-title").textContent = r.title || "";
+      document.getElementById("detail-subtitle").textContent = r.subtitle || "";
+
+      const ingredientsList = document.getElementById("detail-ingredients");
+      ingredientsList.innerHTML = "";
+      if (r.ingredients) {
+        const items = r.ingredients.split("|");
+        items.forEach(i => {
+          const li = document.createElement("li");
+          li.textContent = i.trim();
+          ingredientsList.appendChild(li);
+        });
+      }
+
+      document.getElementById("detail-instructions").textContent = r.instructions || "";
+      document.getElementById("detail-nutrition").textContent = r.nutrition || "";
+
+      container.style.display = "none";
+      detailView.style.display = "block";
+      window.scrollTo(0, 0);
+    }
+
+    // --- Back Button ---
+    document.getElementById("back-button").addEventListener("click", () => {
+      document.querySelector(".recipe-container").style.display = "flex";
+      document.getElementById("recipe-detail").style.display = "none";
+    });
 
     loadRecipes();
   </script>
